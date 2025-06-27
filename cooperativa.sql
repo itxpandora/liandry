@@ -1,0 +1,77 @@
+CREATE DATABASE Cooperativa;
+USE Cooperativa;
+
+CREATE TABLE Persona (
+    CI INT PRIMARY KEY CHECK (CI > 350000),
+    Nombres VARCHAR(50),
+    Apellidos VARCHAR(50),
+    Domicilio VARCHAR(100),
+    Telefono VARCHAR(20),
+    Correo VARCHAR(50)
+);
+
+CREATE TABLE Usuario (
+    CI INT PRIMARY KEY,
+    FOREIGN KEY (CI) REFERENCES Persona(CI)
+);
+
+CREATE TABLE Admin (
+    CI INT PRIMARY KEY,
+    FOREIGN KEY (CI) REFERENCES Persona(CI)
+);
+
+CREATE TABLE UnidadHabitacional (
+    ID INT PRIMARY KEY CHECK (ID > 0),
+    Direccion VARCHAR(100),
+    Tamaño INT CHECK (Tamaño > 25),
+    Baños INT,
+    Dormitorios INT
+);
+
+CREATE TABLE ComprobanteHoras (
+    Fecha_Horas DATE PRIMARY KEY CHECK (Fecha_Horas <= CURRENT_DATE),
+    Horas INT CHECK (Horas > 21),
+    Estatus VARCHAR(20) CHECK (Estatus IN ('Al dia', 'Atrasado'))
+);
+
+CREATE TABLE ComprobantePago (
+    CI INT,
+    Fecha_Pago DATE CHECK (Fecha_Pago <= CURRENT_DATE),
+    Forma_Pago VARCHAR(20) CHECK (Forma_Pago IN ('Tarjeta', 'Paypal')),
+    PRIMARY KEY (CI, Fecha_Pago),
+    FOREIGN KEY (CI) REFERENCES Persona(CI)
+);
+
+CREATE TABLE Pertenece (
+    CI INT,
+    ID_Unidad INT,
+    PRIMARY KEY (CI, ID_Unidad),
+    FOREIGN KEY (CI) REFERENCES Persona(CI),
+    FOREIGN KEY (ID_Unidad) REFERENCES UnidadHabitacional(ID)
+);
+
+CREATE TABLE Verifica (
+    CI_Admin INT,
+    Fecha_Verificacion DATE,
+    ID_Unidad INT,
+    PRIMARY KEY (CI_Admin, Fecha_Verificacion, ID_Unidad),
+    FOREIGN KEY (CI_Admin) REFERENCES Admin(CI),
+    FOREIGN KEY (ID_Unidad) REFERENCES UnidadHabitacional(ID)
+);
+
+CREATE TABLE Autoriza (
+    CI_Admin INT,
+    CI_Usuario INT,
+    Fecha_Autorizacion DATE,
+    PRIMARY KEY (CI_Admin, CI_Usuario, Fecha_Autorizacion),
+    FOREIGN KEY (CI_Admin) REFERENCES Admin(CI),
+    FOREIGN KEY (CI_Usuario) REFERENCES Usuario(CI)
+);
+
+CREATE TABLE Gestiona (
+    CI_Admin INT,
+    ID_Unidad INT,
+    PRIMARY KEY (CI_Admin, ID_Unidad),
+    FOREIGN KEY (CI_Admin) REFERENCES Admin(CI),
+    FOREIGN KEY (ID_Unidad) REFERENCES UnidadHabitacional(ID)
+);

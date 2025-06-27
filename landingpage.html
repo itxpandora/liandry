@@ -2,49 +2,102 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Cooperativa de Viviendas</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Cooperativa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="favicon.ico">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
   <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="favicon.ico">
 </head>
 <body>
 
-<div class="container-fluid text-center header mb-4">
-  <a href="landingpage.html"><img class="header_ico" src="icon_cooperativa.png"></a>  
-  <h3 class="main-title">Cooperativa de Viviendas de Ayuda Mutua</h3>
-</div>
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <a class="navbar-brand" href="#">
+    <img src="img/icon_cooperativa.png" width="40" height="40" alt="Logo"> Cooperativa
+  </a>
+  <div class="ml-auto">
+    <a class="btn btn-custom" href="login.html">Acceder</a>
+  </div>
+</nav>
 
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-md-8 border-box text-center">
-      <h5 class="form-title">Bienvenido a la Cooperativa de Viviendas de Ayuda Mutua</h5>
-      <p class="info-text">La Cooperativa de Viviendas de Ayuda Mutua es una organización conformada por familias que, mediante el trabajo colectivo y la colaboración entre sus integrantes, 
-        desarrollan proyectos de vivienda de calidad y espacios comunitarios. Su finalidad es facilitar el acceso a una vivienda digna a través de un sistema de ayuda mutua, 
-        participación activa y gestión compartida.
-        La cooperativa funciona bajo principios de solidaridad, organización democrática y esfuerzo propio, permitiendo a sus socios involucrarse en todas las etapas del proceso: 
-        desde la planificación y financiación hasta la construcción y administración de los espacios. Además de construir viviendas, promueve valores de convivencia, 
-        participación y sentido de comunidad.</p>
-      
-      <div class="row">
-        <div class="col-4 mb-3">
-          <img src="coop_imagen1.png" class="img-fluid rounded galeria-img" alt="Imagen 1">
-        </div>
-        <div class="col-4 mb-3">
-          <img src="coop_imagen2.png" class="img-fluid rounded galeria-img" alt="Imagen 2">
-        </div>
-        <div class="col-4 mb-3">
-          <img src="coop_imagen3.png" class="img-fluid rounded galeria-img" alt="Imagen 3">
-        </div>
-      </div>
-
-      <div class="mt-4">
-        <a href="index.html" class="btn btn-custom btn-block">Iniciar Sesión</a>
-        <a href="register.html" class="btn btn-custom btn-block mt-3">Registrarse</a>
-      </div>
+<div id="carouselPortada" class="carousel slide" data-ride="carousel" data-interval="3000">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="img/coop_imagen1.png" class="d-block w-100" alt="Imagen 1">
+    </div>
+    <div class="carousel-item">
+      <img src="img/coop_imagen2.png" class="d-block w-100" alt="Imagen 2">
+    </div>
+    <div class="carousel-item">
+      <img src="img/coop_imagen3.png" class="d-block w-100" alt="Imagen 3">
     </div>
   </div>
 </div>
+
+
+<section class="py-5 text-center">
+  <h2 class="mb-4">Nuestros Servicios</h2>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="servicio-box p-3">
+          <h5>Ahorro Cooperativo</h5>
+          <p>Ofrecemos cuentas de ahorro con intereses competitivos y beneficios exclusivos.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="servicio-box p-3">
+          <h5>Créditos Responsables</h5>
+          <p>Financiamiento ajustado a tus necesidades con tasas justas y condiciones claras.</p>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="servicio-box p-3">
+          <h5>Inversiones Sostenibles</h5>
+          <p>Oportunidades que benefician a la comunidad y al medio ambiente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 bg-light text-center">
+  <h2 class="mb-4">Lo que dicen nuestros socios</h2>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <div class="testimonio p-3">
+          <p>"Gracias a la Cooperativa de Ayudua Mutua pude financiar mi negocio ecológico. Su asesoramiento hizo toda la diferencia."</p>
+          <h6>María González</h6>
+          <small>Dueña de tienda orgánica</small>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="testimonio p-3">
+          <p>"Después de años en bancos tradicionales, encontré aquí el trato humano y condiciones justas."</p>
+          <h6>Carlos Mendoza</h6>
+          <small>Socio desde 2010</small>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="testimonio p-3">
+          <p>"Me encanta saber que mis ahorros benefician a la comunidad y el medio ambiente."</p>
+          <h6>Ana López</h6>
+          <small>Profesora universitaria</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-4 text-center">
+  <h4>¿Listo para unirse a nuestra comunidad?</h4>
+  <p>Regístrate y comienza a disfrutar de todos los beneficios de ser parte de la Cooperativa de Ayudua Mutua.</p>
+  <a href="register.html" class="btn btn-custom">Hacerse socio</a>
+</section>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
 
 </body>
 </html>

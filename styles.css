@@ -1,6 +1,6 @@
-    body {
+    body.pagina-secundaria {
         background-color: #e9f4fb;
-        background: url(background.png) center fixed no-repeat;
+        background: url(img/background.png) center fixed no-repeat;
         background-size: cover;
         font-family: 'Segoe UI', sans-serif;
     }
@@ -84,4 +84,27 @@
 
     .galeria-img:hover {
         transform: scale(1.05);
+    }
+
+    .navbar-brand {
+        font-weight: bold;
+        color: #543997 !important;
+    }
+    #carouselPortada img {
+        max-height: 400px;
+        object-fit: cover;
+    }
+
+    .servicio-box {
+        background: #fff;
+        border: 2px solid #543997;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .testimonio {
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
