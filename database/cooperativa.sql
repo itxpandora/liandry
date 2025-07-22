@@ -1,5 +1,5 @@
-CREATE DATABASE Cooperativa;
-USE Cooperativa;
+CREATE DATABASE cooperativa;
+USE cooperativa;
 
 CREATE TABLE Persona (
     CI INT PRIMARY KEY CHECK (CI > 350000),
@@ -10,9 +10,16 @@ CREATE TABLE Persona (
     Correo VARCHAR(50)
 );
 
-CREATE TABLE Usuario (
-    CI INT PRIMARY KEY,
-    FOREIGN KEY (CI) REFERENCES Persona(CI)
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ci INT NOT NULL,
+  nombres VARCHAR(100) NOT NULL,
+  apellidos VARCHAR(100) NOT NULL,
+  fecha_nacimiento DATE NOT NULL,
+  correo VARCHAR(255) NOT NULL,
+  telefono INT(9) NOT NULL,
+  estado BOOLEAN NOT NULL DEFAULT 0, 
+  password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Admin (
@@ -23,7 +30,7 @@ CREATE TABLE Admin (
 CREATE TABLE UnidadHabitacional (
     ID INT PRIMARY KEY CHECK (ID > 0),
     Direccion VARCHAR(100),
-    Tamaño INT CHECK (Tamaño > 25),
+    Tamano INT CHECK (Tamano > 25),
     Baños INT,
     Dormitorios INT
 );

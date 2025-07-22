@@ -20,7 +20,7 @@
   <div class="col-md-4">
     <div class="card shadow">
       <h4 class="form-title">Iniciar Sesión</h4>
-      <form>
+      <form id="form-login">
         <div class="form-group">
           <label for="email">Correo Electrónico</label>
           <input type="email" class="form-control" id="email" placeholder="Ingrese su correo" required>
@@ -36,6 +36,33 @@
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById("form-login").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  try {
+    const response = await fetch("http://localhost:8000/login.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      localStorage.setItem("correo", document.getElementById("email").value.trim());
+      alert("Login exitoso.");
+      window.location.href = "http://localhost:8080/perfil.html";
+    } else {
+      alert(result.message || "Credenciales inválidas.");
+    }
+  } catch (error) {
+    alert("Error al intentar iniciar sesión.");
+  }
+});
+</script>
 
 </body>
 </html>

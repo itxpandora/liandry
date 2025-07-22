@@ -1,0 +1,34 @@
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: cooperativa_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cooperativa
+      MYSQL_USER: cooperativa_user
+      MYSQL_PASSWORD: cooperativa_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./sql/cooperativa.sql:/docker-entrypoint-initdb.d/cooperativa.sql
+
+  php-api:
+    build: ./src
+    container_name: cooperativa_api
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - mysql
+
+  frontend:
+    image: httpd:2.4
+    container_name: cooperativa_frontend
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src/frontend:/usr/local/apache2/htdocs/
