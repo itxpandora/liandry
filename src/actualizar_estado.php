@@ -5,14 +5,24 @@ header("Access-Control-Allow-Methods: POST");
 header("Content-Type: application/json");
 include 'db.php';
 
-$data = json_decode(file_get_contents("php://input"), true);
-$id = $data['id'];
-$estado = $data['estado'] === 'aprobado' ? 1 : 0;
+$data = json_decode(file_get_contents("php://input"));
 
-$sql = "UPDATE usuarios SET estado=? WHERE id=?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $estado, $id);
-$stmt->execute();
+if (!isset($data->id) || !isset($data->estado)) {
+    echo json_encode(["status" => "error", "message" => "Faltan parámetros"]);
+    exit;
+}
 
-echo json_encode(["success" => true]);
+$id = $data->id;
+$estado = $data->estado;
+
+try {
+    $query = "UPDATE usuarios SET estado = :estado WHERE id = :id";
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':estado', $estado);
+    $stmt->bindParam(':id', $id);
+    $stmt->execute();
+    echo json_encode(["status" => "ok", "message" => "Estado actualizado"]);
+} catch (Exception $e) {
+    echo json_encode(["status" => "error", "message" => "Error: " . $e->getMessage()]);
+}
 ?>
