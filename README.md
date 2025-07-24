@@ -1,3 +1,3 @@
-https://itxpandora.github.io/liandry/index.html
+https://itxpandora.github.io/liandry/src/frontend/index.html
 
 SELECT * FROM cooperativa.usuarios;
