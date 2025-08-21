@@ -22,6 +22,9 @@
       <h4 class="form-title">Regístrese</h4>
       <form id="form-registro">
         <div class="form-group">
+          <input type="text" class="form-control rounded-input" placeholder="Cédula de Identidad (sin puntos ni guiones)" id="ci" required>
+        </div>
+        <div class="form-group">
           <input type="text" class="form-control rounded-input" placeholder="Nombre" id="nombre" required>
         </div>
         <div class="form-group">
@@ -51,31 +54,36 @@
   </div>
 </div>
 
-
 <script>
 document.getElementById("form-registro").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  const nombre = document.getElementById("nombre").value.trim();
+  const ci       = document.getElementById("ci").value.trim();
+  const nombre   = document.getElementById("nombre").value.trim();
   const apellido = document.getElementById("apellido").value.trim();
-  const fecha = document.getElementById("fecha").value.trim();
-  const email = document.getElementById("email").value.trim();
+  const fecha    = document.getElementById("fecha").value.trim();
+  const email    = document.getElementById("email").value.trim();
   const telefono = document.getElementById("telefono").value.trim();
   const password = document.getElementById("password").value;
-  const confirmar = document.getElementById("confirmar").value;
+  const confirmar= document.getElementById("confirmar").value;
+
+  if (!/^[0-9]{7,8}$/.test(ci)) {
+    alert("La CI debe contener 7 u 8 dígitos numéricos.");
+    return;
+  }
+
+  if (!/^[0-9]{9}$/.test(telefono)) {
+    alert("El teléfono debe contener exactamente 9 dígitos.");
+    return;
+  }
 
   if (password !== confirmar) {
     alert("Las contraseñas no coinciden.");
     return;
   }
 
-  if (!/^[0-9]{9}$/.test(telefono)) {
-    alert("El número de teléfono debe contener exactamente 9 dígitos numéricos.");
-    return;
-  }
-
   const data = {
-    ci: Math.floor(Math.random() * 1000000 + 400000),
+    ci: ci,
     nombres: nombre,
     apellidos: apellido,
     fecha_nacimiento: fecha,
@@ -103,7 +111,6 @@ document.getElementById("form-registro").addEventListener("submit", async functi
   }
 });
 </script>
-
 
 </body>
 </html>

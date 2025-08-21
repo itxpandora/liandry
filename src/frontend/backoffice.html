@@ -24,11 +24,12 @@
             <table class="table table-bordered table-striped align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>ID</th>
+                        <th>CI</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Email</th>
                         <th>Estado</th>
+                        <th>Comprobante</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -37,61 +38,93 @@
         </div>
     </main>
 
-    <script>
-        function aprobarUsuario(id) {
-            fetch(`http://localhost:8000/aprobar_usuario.php?id=${id}&accion=aprobar`)
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                });
-        }
+    <!-- Modal de previsualización PDF -->
+    <div class="modal fade" id="modalPDF" tabindex="-1" aria-labelledby="modalPDFLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl" style="max-width: 95%;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalPDFLabel">Comprobante de Pago</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body p-0" style="height: 80vh;">
+            <iframe id="visorPDF" title="Comprobante" style="border:0; width:100%; height:100%;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        function rechazarUsuario(id) {
-            fetch(`http://localhost:8000/aprobar_usuario.php?id=${id}&accion=rechazar`)
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                });
-        }
+<script>
+  function aprobarUsuario(id) {
+    fetch(`http://localhost:8000/aprobar_usuario.php?id=${id}&accion=aprobar`)
+      .then(r => r.json())
+      .then(data => { alert(data.message); location.reload(); });
+  }
 
-        async function cargarUsuarios() {
-            const res = await fetch("http://localhost:8000/backoffice.php");
-            const usuarios = await res.json();
+  function rechazarUsuario(id) {
+    fetch(`http://localhost:8000/aprobar_usuario.php?id=${id}&accion=rechazar`)
+      .then(r => r.json())
+      .then(data => { alert(data.message); location.reload(); });
+  }
 
-            const tbody = document.getElementById("usuariosTableBody");
-            tbody.innerHTML = "";
-            usuarios.forEach(user => {
-                const fila = document.createElement("tr");
-                fila.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.nombres}</td>
-                    <td>${user.apellidos}</td>
-                    <td>${user.correo}</td>
-                    <td>
-                        <span class="badge ${user.estado == 1 ? 'bg-success' : 'bg-secondary'}">
-                            ${user.estado == 1 ? 'Aprobado' : 'Pendiente'}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-success me-2" onclick="actualizarEstado(${user.id}, 1)">Aprobar</button>
-                        <button class="btn btn-sm btn-danger" onclick="actualizarEstado(${user.id}, 0)">Rechazar</button>
-                    </td>`;
-                tbody.appendChild(fila);
-            });
-        }
+  async function cargarUsuarios() {
+    const res = await fetch("http://localhost:8000/backoffice.php?ts=" + Date.now()); // <-- rompe caché
+    const usuarios = await res.json();
 
-        async function actualizarEstado(id, estado) {
-            await fetch("http://localhost:8000/actualizar_estado.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id, estado })
-            });
-            cargarUsuarios();
-        }
+    // Ayuda de depuración (podés dejarlo o quitarlo)
+    console.log("JSON backoffice:", usuarios);
 
-        cargarUsuarios();
-    </script>
+    const tbody = document.getElementById("usuariosTableBody");
+    tbody.innerHTML = "";
+
+    usuarios.forEach(user => {
+      const fila = document.createElement("tr");
+
+      const ci = user.ci ?? user.CI ?? ""; // <-- CI visible en 1ª columna
+
+      const badge = (Number(user.estado) === 1)
+        ? `<span class="badge bg-success">Aprobado</span>`
+        : `<span class="badge bg-secondary">Pendiente</span>`;
+
+      const btnVer = (Number(user.tiene_comprobante) === 1)
+        ? `<button class="btn btn-sm btn-outline-primary" onclick="verPDF(${user.id})">Ver PDF</button>`
+        : `<span class="text-muted">Sin archivo</span>`;
+
+      fila.innerHTML = `
+        <td>${user.ci}</td>
+        <td>${user.nombres}</td>
+        <td>${user.apellidos}</td>
+        <td>${user.correo}</td>
+        <td>${badge}</td>
+        <td class="text-center">${btnVer}</td>
+        <td>
+          <button class="btn btn-sm btn-success me-2" onclick="actualizarEstado(${user.id}, 1)">Aprobar</button>
+          <button class="btn btn-sm btn-danger" onclick="actualizarEstado(${user.id}, 0)">Rechazar</button>
+        </td>
+      `;
+      tbody.appendChild(fila);
+    });
+  }
+
+  async function actualizarEstado(id, estado) {
+    await fetch("http://localhost:8000/actualizar_estado.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, estado })
+    });
+    cargarUsuarios();
+  }
+
+  function verPDF(idUsuario) {
+    const src = `http://localhost:8000/backoffice.php?ver_pdf=${encodeURIComponent(idUsuario)}`;
+    document.getElementById('visorPDF').src = src + `#toolbar=1&navpanes=0`;
+    const modal = new bootstrap.Modal(document.getElementById('modalPDF'));
+    modal.show();
+  }
+
+  cargarUsuarios();
+</script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
