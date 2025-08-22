@@ -18,21 +18,49 @@ if(!$data) {
     exit;
 }
 
-$query = "INSERT INTO usuarios (ci, nombres, apellidos, fecha_nacimiento, correo, telefono, password)
-          VALUES (:ci, :nombres, :apellidos, :fecha_nacimiento, :correo, :telefono, :password)";
-$stmt = $conn->prepare($query);
-$stmt->bindParam(':ci', $data->ci);
-$stmt->bindParam(':nombres', $data->nombres);
-$stmt->bindParam(':apellidos', $data->apellidos);
-$stmt->bindParam(':fecha_nacimiento', $data->fecha_nacimiento);
-$stmt->bindParam(':correo', $data->correo);
-$stmt->bindParam(':telefono', $data->telefono);
-$hashed_password = password_hash($data->password, PASSWORD_DEFAULT);
-$stmt->bindParam(':password', $hashed_password);
+try {
+    $conn->beginTransaction();
 
-if($stmt->execute()) {
+    $ci = $data->ci;
+
+    // 1) Insertar en Persona si no existe
+    $checkPersona = $conn->prepare("SELECT 1 FROM Persona WHERE CI = :ci");
+    $checkPersona->bindParam(':ci', $ci);
+    $checkPersona->execute();
+
+    if ($checkPersona->rowCount() === 0) {
+        $insertPersona = $conn->prepare("
+            INSERT INTO Persona (CI, Nombres, Apellidos, Domicilio, Telefono, Correo)
+            VALUES (:ci, :nombres, :apellidos, '', :telefono, :correo)
+        ");
+        $insertPersona->bindParam(':ci', $ci);
+        $insertPersona->bindParam(':nombres', $data->nombres);
+        $insertPersona->bindParam(':apellidos', $data->apellidos);
+        $insertPersona->bindParam(':telefono', $data->telefono);
+        $insertPersona->bindParam(':correo', $data->correo);
+        $insertPersona->execute();
+    }
+
+    // 2) Insertar en usuarios
+    $insertUsuario = $conn->prepare("
+        INSERT INTO usuarios (ci, nombres, apellidos, fecha_nacimiento, correo, telefono, password)
+        VALUES (:ci, :nombres, :apellidos, :fecha_nacimiento, :correo, :telefono, :password)
+    ");
+    $insertUsuario->bindParam(':ci', $ci);
+    $insertUsuario->bindParam(':nombres', $data->nombres);
+    $insertUsuario->bindParam(':apellidos', $data->apellidos);
+    $insertUsuario->bindParam(':fecha_nacimiento', $data->fecha_nacimiento);
+    $insertUsuario->bindParam(':correo', $data->correo);
+    $insertUsuario->bindParam(':telefono', $data->telefono);
+    $hashed_password = password_hash($data->password, PASSWORD_DEFAULT);
+    $insertUsuario->bindParam(':password', $hashed_password);
+    $insertUsuario->execute();
+
+    $conn->commit();
     echo json_encode(["status" => "success"]);
-} else {
-    echo json_encode(["status" => "error", "message" => "Error al crear usuario"]);
+
+} catch (PDOException $e) {
+    $conn->rollBack();
+    echo json_encode(["status" => "error", "message" => "Error en el registro: " . $e->getMessage()]);
 }
 ?>

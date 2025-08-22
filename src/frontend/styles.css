@@ -108,3 +108,35 @@
         border: 1px solid #ddd;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+
+    .propiedad-card {
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 12px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .propiedad-carousel {
+        max-height: 220px;
+    }
+    .propiedad-img {
+        object-fit: cover;
+        height: 220px;
+    }
+
+    .chip-dato {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        padding: .35rem .6rem;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,0.1);
+        background: rgba(0,0,0,0.03);
+        font-size: .875rem;
+        color: #333;
+        white-space: nowrap;
+    }
+
+    #filtro-busqueda::placeholder {
+        color: #8894a0;
+    }
