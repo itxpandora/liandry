@@ -1,6 +1,11 @@
 CREATE DATABASE cooperativa;
 USE cooperativa;
 
+SELECT * FROM cooperativa.usuarios;
+
+ALTER TABLE ComprobantePago
+  ADD COLUMN Size INT UNSIGNED AFTER Mime;
+
 CREATE TABLE Persona (
     CI INT PRIMARY KEY CHECK (CI > 350000),
     Nombres VARCHAR(50),
@@ -42,9 +47,14 @@ CREATE TABLE ComprobanteHoras (
 );
 
 CREATE TABLE ComprobantePago (
-    CI INT,
-    Fecha_Pago DATE CHECK (Fecha_Pago <= CURRENT_DATE),
-    Forma_Pago VARCHAR(20) CHECK (Forma_Pago IN ('Tarjeta', 'Paypal')),
+    CI INT(11) NOT NULL,
+    Fecha_Pago DATE NOT NULL CHECK (Fecha_Pago <= CURRENT_DATE),
+    Forma_Pago VARCHAR(20) NOT NULL CHECK (Forma_Pago IN ('Tarjeta', 'Paypal')),
+    Filename VARCHAR(255) NOT NULL,
+    Mime VARCHAR(100) NOT NULL,
+    Size INT(10) UNSIGNED NOT NULL,
+    Contenido LONGBLOB,
+    Estado ENUM('pendiente','aprobado','rechazado') DEFAULT 'pendiente',
     PRIMARY KEY (CI, Fecha_Pago),
     FOREIGN KEY (CI) REFERENCES Persona(CI)
 );
