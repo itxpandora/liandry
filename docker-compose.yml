@@ -1,6 +1,8 @@
+version: "3.9"
+
 services:
   mysql:
-    image: mysql:5.7
+    image: mysql:8.0
     container_name: cooperativa_db
     restart: always
     environment:
@@ -10,8 +12,15 @@ services:
       MYSQL_PASSWORD: cooperativa_pass
     ports:
       - "3307:3306"
+    command: [
+      "--default_authentication_plugin=mysql_native_password",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
+      "--sql-mode=STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    ]
     volumes:
-      - ./sql/cooperativa.sql:/docker-entrypoint-initdb.d/cooperativa.sql
+      - db_data:/var/lib/mysql
+      - ./sql/cooperativa.sql:/docker-entrypoint-initdb.d/cooperativa.sql:ro,z
 
   php-api:
     build: ./src
@@ -20,7 +29,7 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - ./src:/var/www/html
+      - ./src:/var/www/html:Z
     depends_on:
       - mysql
 
@@ -31,4 +40,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./src/frontend:/usr/local/apache2/htdocs/
+      - ./src/frontend:/usr/local/apache2/htdocs/:Z
+
+volumes:
+  db_data:

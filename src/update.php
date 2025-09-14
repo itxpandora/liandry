@@ -144,11 +144,106 @@ if (stripos($contentType, 'multipart/form-data') !== false && isset($_FILES['com
 }
 
 // --------------------------------------------------------------------------------------
-// RUTA 2: ACTUALIZAR DATOS DE PERFIL (application/json)
+// (NUEVO) RUTA 2: HORAS TRABAJADAS (application/json con 'action')
 // --------------------------------------------------------------------------------------
-$raw  = file_get_contents("php://input");
+// Leemos el cuerpo crudo UNA vez para reutilizar
+$raw = file_get_contents("php://input");
 $data = json_decode($raw);
 
+// Si es JSON y trae 'action', procesamos horas acá y salimos.
+// action: "get" | "add"
+if ($data && isset($data->action)) {
+  try {
+    // 1) Validaciones básicas
+    $correo = trim((string)($data->correo ?? $data->correo_original ?? ''));
+    if (!$correo) {
+      echo json_encode(["status" => "error", "message" => "Correo faltante"]);
+      exit;
+    }
+
+    // 2) Obtener CI del usuario
+    $q = $conn->prepare("SELECT u.ci FROM usuarios u WHERE u.correo = :c LIMIT 1");
+    $q->execute([':c' => $correo]);
+    $row = $q->fetch(PDO::FETCH_ASSOC);
+    if (!$row || empty($row['ci'])) {
+      echo json_encode(["status" => "error", "message" => "Usuario no encontrado o sin CI asignado"]);
+      exit;
+    }
+    $ci = (int)$row['ci'];
+
+    // 3) Asegurar tabla (idempotente, por si no existe)
+    $conn->exec("
+      CREATE TABLE IF NOT EXISTS HorasTrabajadas (
+        CI INT PRIMARY KEY,
+        Total DECIMAL(10,2) NOT NULL DEFAULT 0,
+        UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_horas_persona FOREIGN KEY (CI) REFERENCES Persona(CI)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+
+    // 4) Branch por acción
+    $action = strtolower(trim((string)$data->action));
+
+    if ($action === 'get') {
+      $stmt = $conn->prepare("SELECT Total FROM HorasTrabajadas WHERE CI = :ci");
+      $stmt->execute([':ci' => $ci]);
+      $total = $stmt->fetchColumn();
+      $total = $total !== false ? (float)$total : 0.0;
+
+      echo json_encode(["status" => "success", "total_horas" => round($total, 2)]);
+      exit;
+    }
+
+    if ($action === 'add') {
+      if (!isset($data->horas) || !is_numeric($data->horas)) {
+        echo json_encode(["status" => "error", "message" => "Campo 'horas' inválido"]);
+        exit;
+      }
+
+      $horas = (float)$data->horas;
+      if ($horas < 0.25) {
+        echo json_encode(["status" => "error", "message" => "El mínimo a sumar es 0.25 horas"]);
+        exit;
+      }
+      if ($horas > 16) {
+        echo json_encode(["status" => "error", "message" => "El máximo por carga es 16 horas"]);
+        exit;
+      }
+
+      // Upsert: suma atómica
+      // Nota: VALUES(Total) refiere al valor del INSERT (horas), así Total = Total + horas
+      $stmt = $conn->prepare("
+        INSERT INTO HorasTrabajadas (CI, Total)
+        VALUES (:ci, :h)
+        ON DUPLICATE KEY UPDATE Total = Total + VALUES(Total)
+      ");
+      $stmt->execute([':ci' => $ci, ':h' => $horas]);
+
+      // Devolver total actualizado
+      $stmt2 = $conn->prepare("SELECT Total FROM HorasTrabajadas WHERE CI = :ci");
+      $stmt2->execute([':ci' => $ci]);
+      $total = (float)$stmt2->fetchColumn();
+
+      echo json_encode(["status" => "success", "total_horas" => round($total, 2)]);
+      exit;
+    }
+
+    // Acción desconocida
+    echo json_encode(["status" => "error", "message" => "Acción no soportada"]);
+    exit;
+
+  } catch (PDOException $e) {
+    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    exit;
+  } catch (Throwable $e) {
+    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    exit;
+  }
+}
+
+// --------------------------------------------------------------------------------------
+// RUTA 3: ACTUALIZAR DATOS DE PERFIL (application/json SIN 'action')
+// --------------------------------------------------------------------------------------
 if (!$data || !isset($data->correo) || !isset($data->telefono) || !isset($data->correo_original)) {
   echo json_encode(["status" => "error", "message" => "Datos incompletos"]);
   exit;

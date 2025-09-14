@@ -50,6 +50,35 @@
 
         <button type="submit" class="btn btn-custom btn-block mt-3">Guardar Cambios</button>
       </form>
+
+      <hr class="my-4">
+      <h5 class="mb-3">Jornadas de trabajo</h5>
+
+      <div id="horas-alert" class="alert alert-info" role="alert">
+        Has registrado <strong id="horas-total">0</strong> horas trabajadas.
+      </div>
+
+      <div class="form-row">
+        <div class="col-8">
+          <label for="input-horas">Horas a sumar</label>
+          <input
+            type="number"
+            class="form-control"
+            id="input-horas"
+            min="0.25"
+            step="0.25"
+            placeholder="Ej: 1, 1.5, 2.25">
+        </div>
+        <div class="col-4 d-flex align-items-end">
+          <button type="button" id="btn-sumar-horas" class="btn btn-success btn-block">
+            Sumar horas
+          </button>
+        </div>
+          <small class="form-text text-muted">
+            Mínimo 0.25 h. Se suman a tu total.
+          </small>
+      </div>
+
       <div class="mt-3 text-center">
         <a href="login.html">Cerrar sesión</a>
       </div>
@@ -76,8 +105,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const emailInput = document.getElementById("perfil-email");
+  const telefonoInput = document.getElementById("perfil-telefono");
+  const totalHorasEl = document.getElementById("horas-total");
+  const inputHoras = document.getElementById("input-horas");
+  const btnSumarHoras = document.getElementById("btn-sumar-horas");
+
   emailInput.value = correoLS;
 
+  // Carga datos de perfil
   try {
     const r = await fetch("http://localhost:8000/usuario.php", {
       method: "POST",
@@ -86,10 +121,64 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     const j = await r.json();
     if (j.status === "success") {
-      document.getElementById("perfil-telefono").value = j.usuario.telefono || "";
-    } else { alert("No se pudieron cargar tus datos."); }
-  } catch { alert("No se pudo conectar con el servidor."); }
+      telefonoInput.value = j.usuario.telefono || "";
+    } else {
+      alert("No se pudieron cargar tus datos.");
+    }
+  } catch {
+    alert("No se pudo conectar con el servidor.");
+  }
 
+  // --- HORAS: obtener total actual ---
+  async function cargarTotalHoras() {
+    try {
+      const resp = await fetch("http://localhost:8000/update.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get", correo: emailInput.value.trim() || correoLS })
+      });
+      const data = await resp.json();
+      if (data.status === "success" && typeof data.total_horas !== "undefined") {
+        totalHorasEl.textContent = Number(data.total_horas).toFixed(2);
+      }
+    } catch (err) {
+      // Silencioso para no molestar al usuario si aún no existe el endpoint
+      // console.warn("No se pudo obtener el total de horas:", err);
+    }
+  }
+  await cargarTotalHoras();
+
+  // --- HORAS: sumar horas ---
+  btnSumarHoras.addEventListener("click", async () => {
+    const val = parseFloat(inputHoras.value.replace(",", "."));
+    if (isNaN(val)) { alert("Ingresá un número válido de horas."); return; }
+    if (val < 0.25) { alert("El mínimo a sumar es 0.25 horas."); return; }
+    if (val > 16) { alert("Por seguridad, el máximo por carga es 16 horas."); return; }
+
+    try {
+      const resp = await fetch("http://localhost:8000/update.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add",
+          correo: emailInput.value.trim() || correoLS,
+          horas: val
+        })
+      });
+      const data = await resp.json();
+      if (data.status === "success") {
+        totalHorasEl.textContent = Number(data.total_horas).toFixed(2);
+        inputHoras.value = "";
+        alert("Horas cargadas correctamente.");
+      } else {
+        alert("Error al cargar horas: " + (data.message || "Desconocido"));
+      }
+    } catch (err) {
+      alert("Error en el servidor: " + err.message);
+    }
+  });
+
+  // Guardar cambios de perfil
   document.getElementById("form-perfil").addEventListener("submit", async (e) => {
     e.preventDefault();
     const correoNuevo = document.getElementById("perfil-email").value.trim();
@@ -107,11 +196,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({ correo: correoNuevo, telefono: telefono, correo_original: correoLS, password: password })
       });
       const j = await r.json();
-      if (j.status === "success") { alert("Datos actualizados."); localStorage.setItem("correo", correoNuevo); }
-      else { alert("Error: " + j.message); }
-    } catch (err) { alert("Error en el servidor: " + err.message); }
+      if (j.status === "success") {
+        alert("Datos actualizados.");
+        localStorage.setItem("correo", correoNuevo);
+      } else {
+        alert("Error: " + j.message);
+      }
+    } catch (err) {
+      alert("Error en el servidor: " + err.message);
+    }
   });
 
+  // Subir comprobante
   document.getElementById("btn-subir-comprobante").addEventListener("click", async () => {
     const fi = document.getElementById("perfil-comprobante");
     if (!fi.files || fi.files.length === 0) { alert("Seleccioná un PDF."); return; }
