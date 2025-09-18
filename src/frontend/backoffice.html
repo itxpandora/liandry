@@ -1,130 +1,408 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Panel Administrativo - Backoffice</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Panel Administrativo - Backoffice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header class="encabezado">
+    <div class="container d-flex justify-content-between align-items-center py-3">
+      <div class="d-flex align-items-center gap-3">
+        <img src="img/icon_cooperativa.png" width="80" height="80" alt="Logo Cooperativa" class="logo">
+      </div>
+      <h1 class="navbar-brand mb-0">Cooperativa de Viviendas de Ayuda Mutua</h1>
+    </div>
+  </header>
 
-    <header class="encabezado">
-        <div class="container d-flex justify-content-between align-items-center py-3">
-            <div class="d-flex align-items-center gap-3">
-                <img src="img/icon_cooperativa.png" width="80" height="80" alt="Logo Cooperativa" class="logo">
-            </div>
-            <h1 class="navbar-brand">Cooperativa de Viviendas de Ayuda Mutua</h1>
+  <main class="container mt-4">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="boTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="tab-usuarios" data-bs-toggle="tab" data-bs-target="#pane-usuarios" type="button" role="tab">Usuarios</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="tab-casas" data-bs-toggle="tab" data-bs-target="#pane-casas" type="button" role="tab">Casas</button>
+      </li>
+    </ul>
+
+    <div class="tab-content pt-4">
+      <!-- Pane: Usuarios -->
+      <div class="tab-pane fade show active" id="pane-usuarios" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="titulo-principal mb-0">Usuarios Registrados</h2>
+          <span id="estado-usuarios" class="text-muted small"></span>
         </div>
-    </header>
-
-    <main class="container mt-5">
-        <h2 class="titulo-principal text-center mb-4">Usuarios Registrados</h2>
         <div class="table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>CI</th>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Email</th>
-                        <th>Estado</th>
-                        <th>Comprobante</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="usuariosTableBody"></tbody>
-            </table>
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>CI</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Email</th>
+                <th>Estado</th>
+                <th>Comprobante</th>
+                <th style="width:200px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuariosTableBody"></tbody>
+          </table>
         </div>
-    </main>
+      </div>
 
-    <!-- Modal de previsualización PDF -->
-    <div class="modal fade" id="modalPDF" tabindex="-1" aria-labelledby="modalPDFLabel" aria-hidden="true">
-      <div class="modal-dialog modal-xl" style="max-width: 95%;">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalPDFLabel">Comprobante de Pago</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <!-- Pane: Casas -->
+      <div class="tab-pane fade" id="pane-casas" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="titulo-principal mb-0">Casas</h2>
+          <div>
+            <button class="btn btn-outline-secondary me-2" id="btn-refrescar-casas">Refrescar</button>
+            <button class="btn btn-primary" id="btn-nueva-casa">Añadir Casa</button>
           </div>
-          <div class="modal-body p-0" style="height: 80vh;">
-            <iframe id="visorPDF" title="Comprobante" style="border:0; width:100%; height:100%;"></iframe>
-          </div>
+        </div>
+        <div class="mb-2">
+          <span id="estado-casas" class="text-muted small"></span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Baños</th>
+                <th>Dormitorios</th>
+                <th>Metros</th>
+                <th>Activo</th>
+                <th style="width:180px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="casasTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
+  </main>
 
-<script>
-  function aprobarUsuario(id) {
-    fetch(`http://localhost:8000/aprobar_usuario.php?id=${id}&accion=aprobar`)
-      .then(r => r.json())
-      .then(data => { alert(data.message); location.reload(); });
-  }
+  <!-- Modal: PDF comprobante -->
+  <div class="modal fade" id="modalPDF" tabindex="-1" aria-labelledby="modalPDFLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" style="max-width: 95%;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalPDFLabel">Comprobante de Pago</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-0" style="height: 80vh;">
+          <iframe id="visorPDF" title="Comprobante" style="border:0; width:100%; height:100%;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  function rechazarUsuario(id) {
-    fetch(`http://localhost:8000/aprobar_usuario.php?id=${id}&accion=rechazar`)
-      .then(r => r.json())
-      .then(data => { alert(data.message); location.reload(); });
-  }
+  <!-- Modal: Crear/Editar Casa -->
+  <div class="modal fade" id="modalCasa" tabindex="-1" aria-labelledby="modalCasaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <form id="formCasa" enctype="multipart/form-data">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalCasaLabel">Nueva Casa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="casaId" name="id">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Título</label>
+                <input type="text" id="casaTitulo" name="titulo" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Activo</label>
+                <select id="casaActivo" name="activo" class="form-select">
+                  <option value="1" selected>Sí</option>
+                  <option value="0">No</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Descripción</label>
+                <textarea id="casaDescripcion" name="descripcion" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Baños</label>
+                <input type="number" min="0" id="casaBanos" name="banos" class="form-control" value="1">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Dormitorios</label>
+                <input type="number" min="0" id="casaDormitorios" name="dormitorios" class="form-control" value="1">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Metros</label>
+                <input type="number" min="0" id="casaMetros" name="metros" class="form-control" value="0">
+              </div>
 
-  async function cargarUsuarios() {
-    const res = await fetch("http://localhost:8000/backoffice.php?ts=" + Date.now()); // <-- rompe caché
-    const usuarios = await res.json();
+              <!-- Archivos + URLs -->
+              <div class="col-12">
+                <div class="row g-2">
+                  <div class="col-md-6"><label class="form-label">Imagen 1 (archivo)</label><input type="file" id="file1" name="img1" accept="image/*" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label">Imagen 2 (archivo)</label><input type="file" id="file2" name="img2" accept="image/*" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label">Imagen 3 (archivo)</label><input type="file" id="file3" name="img3" accept="image/*" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label">Imagen 4 (archivo)</label><input type="file" id="file4" name="img4" accept="image/*" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label">Imagen 5 (archivo)</label><input type="file" id="file5" name="img5" accept="image/*" class="form-control"></div>
 
-    // Ayuda de depuración (podés dejarlo o quitarlo)
-    console.log("JSON backoffice:", usuarios);
+                  <div class="col-12"><small class="text-muted">Opcional: si no subís archivo, podés pegar una URL</small></div>
+                  <div class="col-md-6"><input id="img1" name="url1" class="form-control" placeholder="URL imagen 1"></div>
+                  <div class="col-md-6"><input id="img2" name="url2" class="form-control" placeholder="URL imagen 2"></div>
+                  <div class="col-md-6"><input id="img3" name="url3" class="form-control" placeholder="URL imagen 3"></div>
+                  <div class="col-md-6"><input id="img4" name="url4" class="form-control" placeholder="URL imagen 4"></div>
+                  <div class="col-md-6"><input id="img5" name="url5" class="form-control" placeholder="URL imagen 5"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-primary" id="btn-guardar-casa" type="submit">Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-    const tbody = document.getElementById("usuariosTableBody");
-    tbody.innerHTML = "";
+  <!-- Modal: Editar Usuario -->
+  <div class="modal fade" id="modalUsuario" tabindex="-1" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="formUsuario">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalUsuarioLabel">Editar usuario</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="userId" name="id">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">CI</label>
+                <input type="number" class="form-control" id="userCI" name="ci" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Estado</label>
+                <select class="form-select" id="userEstado" name="estado">
+                  <option value="1">Aprobado</option>
+                  <option value="0">Pendiente</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Nombres</label>
+                <input type="text" class="form-control" id="userNombres" name="nombres" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Apellidos</label>
+                <input type="text" class="form-control" id="userApellidos" name="apellidos" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">Correo</label>
+                <input type="email" class="form-control" id="userCorreo" name="correo">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancelar</button>
+            <button class="btn btn-primary" id="btn-guardar-usuario" type="submit">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-    usuarios.forEach(user => {
-      const fila = document.createElement("tr");
+  <!-- JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_BACKOFFICE = "http://localhost:8000/backoffice.php";
+    const API_ACTUALIZAR_ESTADO = "http://localhost:8000/actualizar_estado.php";
+    const API_CASAS = "http://localhost:8000/casas.php";
 
-      const ci = user.ci ?? user.CI ?? ""; // <-- CI visible en 1ª columna
+    // ========== USUARIOS ==========
+    async function cargarUsuarios() {
+      const estado = document.getElementById("estado-usuarios");
+      estado.textContent = "Cargando...";
+      try {
+        const res = await fetch(API_BACKOFFICE + "?ts=" + Date.now(), { cache: "no-store" });
+        const usuarios = await res.json();
+        const tbody = document.getElementById("usuariosTableBody");
+        tbody.innerHTML = "";
+        usuarios.forEach(user => {
+          const tr = document.createElement("tr");
+          const badge = (Number(user.estado) === 1) ? '<span class="badge bg-success">Aprobado</span>' : '<span class="badge bg-secondary">Pendiente</span>';
+          const btnVer = (Number(user.tiene_comprobante) === 1)
+            ? `<button class="btn btn-sm btn-outline-primary btn-ver" data-id="${user.id}">Ver PDF</button>`
+            : `<span class="text-muted">Sin archivo</span>`;
+          tr.innerHTML = `
+            <td>${user.ci ?? ""}</td>
+            <td>${user.nombres ?? ""}</td>
+            <td>${user.apellidos ?? ""}</td>
+            <td>${user.correo ?? ""}</td>
+            <td>${badge}</td>
+            <td class="text-center">${btnVer}</td>
+            <td>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-outline-secondary btn-editar-usuario"
+                  data-id="${user.id}"
+                  data-ci="${user.ci ?? ''}"
+                  data-nombres="${user.nombres ?? ''}"
+                  data-apellidos="${user.apellidos ?? ''}"
+                  data-correo="${user.correo ?? ''}"
+                  data-estado="${Number(user.estado) === 1 ? '1' : '0'}">Editar</button>
 
-      const badge = (Number(user.estado) === 1)
-        ? `<span class="badge bg-success">Aprobado</span>`
-        : `<span class="badge bg-secondary">Pendiente</span>`;
+                <button class="btn btn-sm btn-success btn-aprobar" data-id="${user.id}" data-estado="1">Aprobar</button>
+                <button class="btn btn-sm btn-danger btn-rechazar" data-id="${user.id}" data-estado="0">Rechazar</button>
+              </div>
+            </td>`;
+          tbody.appendChild(tr);
+        });
 
-      const btnVer = (Number(user.tiene_comprobante) === 1)
-        ? `<button class="btn btn-sm btn-outline-primary" onclick="verPDF(${user.id})">Ver PDF</button>`
-        : `<span class="text-muted">Sin archivo</span>`;
+        // Listeners acciones
+        tbody.querySelectorAll(".btn-ver").forEach(b => b.addEventListener("click", e => verPDF(e.target.dataset.id)));
+        tbody.querySelectorAll(".btn-aprobar,.btn-rechazar").forEach(b => b.addEventListener("click", e => actualizarEstado(e.target.dataset.id, e.target.dataset.estado)));
 
-      fila.innerHTML = `
-        <td>${user.ci}</td>
-        <td>${user.nombres}</td>
-        <td>${user.apellidos}</td>
-        <td>${user.correo}</td>
-        <td>${badge}</td>
-        <td class="text-center">${btnVer}</td>
-        <td>
-          <button class="btn btn-sm btn-success me-2" onclick="actualizarEstado(${user.id}, 1)">Aprobar</button>
-          <button class="btn btn-sm btn-danger" onclick="actualizarEstado(${user.id}, 0)">Rechazar</button>
-        </td>
-      `;
-      tbody.appendChild(fila);
+        // Abrir modal de edición
+        tbody.querySelectorAll(".btn-editar-usuario").forEach(b => {
+          b.addEventListener("click", (e) => {
+            const t = e.currentTarget;
+            document.getElementById("userId").value        = t.dataset.id;
+            document.getElementById("userCI").value        = t.dataset.ci || "";
+            document.getElementById("userNombres").value   = t.dataset.nombres || "";
+            document.getElementById("userApellidos").value = t.dataset.apellidos || "";
+            document.getElementById("userCorreo").value    = t.dataset.correo || "";
+            document.getElementById("userEstado").value    = t.dataset.estado || "0";
+            new bootstrap.Modal(document.getElementById('modalUsuario')).show();
+          });
+        });
+
+        estado.textContent = "";
+      } catch {
+        estado.textContent = "Error al cargar usuarios.";
+      }
+    }
+
+    async function actualizarEstado(id, estado) {
+      await fetch(API_ACTUALIZAR_ESTADO, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, estado })
+      });
+      cargarUsuarios();
+    }
+
+    function verPDF(idUsuario) {
+      const src = `${API_BACKOFFICE}?ver_pdf=${encodeURIComponent(idUsuario)}`;
+      document.getElementById('visorPDF').src = src;
+      new bootstrap.Modal(document.getElementById('modalPDF')).show();
+    }
+
+    // Guardar cambios de usuario
+    document.getElementById("formUsuario").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const payload = {
+        action: "update_user",
+        id: document.getElementById("userId").value,
+        ci: document.getElementById("userCI").value,
+        nombres: document.getElementById("userNombres").value,
+        apellidos: document.getElementById("userApellidos").value,
+        correo: document.getElementById("userCorreo").value,
+        estado: document.getElementById("userEstado").value
+      };
+
+      const res = await fetch(API_BACKOFFICE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (data?.status === "ok") {
+        bootstrap.Modal.getInstance(document.getElementById('modalUsuario')).hide();
+        cargarUsuarios();
+      } else {
+        alert(data?.message || "No se pudo guardar. Revisá el servidor.");
+      }
     });
-  }
 
-  async function actualizarEstado(id, estado) {
-    await fetch("http://localhost:8000/actualizar_estado.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, estado })
+    // ========== CASAS ==========
+    let CASAS = [];
+    function renderCasas() {
+      const tbody = document.getElementById("casasTableBody");
+      tbody.innerHTML = "";
+      CASAS.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${c.id}</td>
+          <td>${c.titulo ?? ""}</td>
+          <td>${c.banos ?? 0}</td>
+          <td>${c.dormitorios ?? 0}</td>
+          <td>${c.metros ?? 0}</td>
+          <td>${Number(c.activo)===1?'<span class="badge bg-success">Sí</span>':'<span class="badge bg-secondary">No</span>'}</td>
+          <td>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${c.id}">Editar</button>
+              <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${c.id}">Eliminar</button>
+            </div>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll(".btn-editar").forEach(btn => btn.addEventListener("click", e => editarCasa(e.target.dataset.id)));
+      tbody.querySelectorAll(".btn-eliminar").forEach(btn => btn.addEventListener("click", e => eliminarCasa(e.target.dataset.id)));
+    }
+
+    async function cargarCasas() {
+      const res = await fetch(API_CASAS + "?ts=" + Date.now());
+      CASAS = await res.json();
+      renderCasas();
+    }
+
+    function nuevaCasa() {
+      document.getElementById("formCasa").reset();
+      document.getElementById("casaId").value = "";
+      new bootstrap.Modal(document.getElementById('modalCasa')).show();
+    }
+
+    function editarCasa(id) {
+      const c = CASAS.find(x => x.id==id);
+      if (!c) return;
+      document.getElementById("casaId").value = c.id;
+      document.getElementById("casaTitulo").value = c.titulo;
+      document.getElementById("casaDescripcion").value = c.descripcion;
+      document.getElementById("casaBanos").value = c.banos;
+      document.getElementById("casaDormitorios").value = c.dormitorios;
+      document.getElementById("casaMetros").value = c.metros;
+      document.getElementById("casaActivo").value = c.activo;
+      new bootstrap.Modal(document.getElementById('modalCasa')).show();
+    }
+
+    async function eliminarCasa(id) {
+      if (!confirm("¿Eliminar esta casa?")) return;
+      await fetch(API_CASAS, { method:"DELETE", headers:{"Content-Type":"application/json"}, body: JSON.stringify({id}) });
+      cargarCasas();
+    }
+
+    document.getElementById("formCasa").addEventListener("submit", async e => {
+      e.preventDefault();
+      const fd = new FormData(document.getElementById("formCasa"));
+      const res = await fetch(API_CASAS, { method:"POST", body: fd });
+      const data = await res.json();
+      alert(data.message || "Guardado");
+      if (data.status==="ok") {
+        bootstrap.Modal.getInstance(document.getElementById('modalCasa')).hide();
+        cargarCasas();
+      }
     });
+    document.getElementById("btn-nueva-casa").addEventListener("click", nuevaCasa);
+    document.getElementById("btn-refrescar-casas").addEventListener("click", cargarCasas);
+
+    // Init
     cargarUsuarios();
-  }
-
-  function verPDF(idUsuario) {
-    const src = `http://localhost:8000/backoffice.php?ver_pdf=${encodeURIComponent(idUsuario)}`;
-    document.getElementById('visorPDF').src = src + `#toolbar=1&navpanes=0`;
-    const modal = new bootstrap.Modal(document.getElementById('modalPDF'));
-    modal.show();
-  }
-
-  cargarUsuarios();
-</script>
-
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    document.getElementById('tab-casas').addEventListener('shown.bs.tab', cargarCasas);
+  </script>
 </body>
 </html>

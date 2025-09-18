@@ -11,15 +11,15 @@
 
   <header class="navbar navbar-light bg-light shadow-sm">
     <div class="container d-flex flex-wrap justify-content-between align-items-center">
-        <a class="navbar-brand" href="index.html">
-            <img src="img/icon_cooperativa.png" width="40" height="40" alt="Logo"> Cooperativa
-        </a>
-
-        <a href="perfil.html" class="btn btn-outline-secondary btn-sm">Volver a mi perfil</a>
+      <a class="navbar-brand" href="index.html">
+        <img src="img/icon_cooperativa.png" width="40" height="40" alt="Logo"> Cooperativa
+      </a>
+      <a href="perfil.html" class="btn btn-outline-secondary btn-sm">Volver a mi perfil</a>
     </div>
   </header>
 
   <main class="container py-4">
+    <!-- Filtros -->
     <div class="row g-2 mb-4">
       <div class="col-12 col-md-4">
         <input id="filtro-busqueda" class="form-control" type="search" placeholder="Buscar por título o descripción...">
@@ -42,74 +42,55 @@
         </select>
       </div>
     </div>
-    <div id="grid-propiedades" class="row g-4">
-    </div>
+
+    <!-- Estado / errores -->
+    <div id="estado" class="mb-3 text-muted"></div>
+
+    <!-- Grilla -->
+    <div id="grid-propiedades" class="row g-4"></div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    const PROPIEDADES = [
-      {
-        id: 101,
-        titulo: "Casa A - Bloque Norte",
-        descripcion: "Unidad luminosa con orientación norte, cerca del área común.",
-        imagenes: [
-          "img/casas/casaA_1.png",
-          "img/casas/casaA_2.png",
-          "img/casas/casaA_3.png",
-          "img/casas/casaA_4.png",
-          "img/casas/casaA_5.png"
-        ],
-        banos: 2,
-        dormitorios: 3,
-        metros: 87
-      },
-      {
-        id: 102,
-        titulo: "Casa B - Patio central",
-        descripcion: "Ambientes amplios, patio compartido y buena ventilación.",
-        imagenes: [
-          "img/casas/casaB_1.png",
-          "img/casas/casaB_2.png",
-          "img/casas/casaB_3.png",
-          "img/casas/casaB_4.png",
-          "img/casas/casaB_5.png"
-        ],
-        banos: 1,
-        dormitorios: 2,
-        metros: 72
-      },
-      {
-        id: 103,
-        titulo: "Casa C - Esquina",
-        descripcion: "Esquinera, con vista abierta y posibilidad de ampliación.",
-        imagenes: [
-          "img/casas/casaC_1.png",
-          "img/casas/casaC_2.png",
-          "img/casas/casaC_3.png",
-          "img/casas/casaC_4.png",
-          "img/casas/casaC_5.png"
-        ],
-        banos: 2,
-        dormitorios: 4,
-        metros: 102
-      }
-    ];
+    // =========================
+    // CONFIG
+    // =========================
+    const API_URL = "http://localhost:8000/casas.php"; // usa ?solo_activas=1
+    const grid = document.getElementById("grid-propiedades");
+    const estado = document.getElementById("estado");
 
+    // Filtros
+    const $busqueda = document.getElementById("filtro-busqueda");
+    const $dorm = document.getElementById("filtro-dorm");
+    const $banos = document.getElementById("filtro-banos");
+
+    // Data en memoria
+    let PROPIEDADES = [];
+
+    // =========================
+    // RENDER
+    // =========================
     function crearTarjeta(prop) {
       const col = document.createElement("div");
       col.className = "col-12 col-md-6 col-lg-4";
 
-      const carouselId = "carousel-" + prop.id;
+      // Construimos array de imágenes válidas desde img1..img5
+      const imagenes = [prop.img1, prop.img2, prop.img3, prop.img4, prop.img5].filter(Boolean);
+      // Si no hay imágenes, ponemos un placeholder
+      if (imagenes.length === 0) {
+        imagenes.push("img/placeholder_casa.jpg"); // opcional: agregá este asset
+      }
 
-      const indicadores = prop.imagenes.map((_, idx) => `
+      const carouselId = "carousel-" + (prop.id ?? Math.random().toString(36).slice(2));
+
+      const indicadores = imagenes.map((_, idx) => `
         <button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${idx}" ${idx===0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${idx+1}"></button>
       `).join("");
 
-      const slides = prop.imagenes.map((src, idx) => `
+      const slides = imagenes.map((src, idx) => `
         <div class="carousel-item ${idx===0 ? 'active' : ''}">
-          <img src="${src}" class="d-block w-100 propiedad-img" alt="${prop.titulo} - imagen ${idx+1}">
+          <img src="${src}" class="d-block w-100 propiedad-img" alt="${(prop.titulo||'Casa')} - imagen ${idx+1}">
         </div>
       `).join("");
 
@@ -133,17 +114,17 @@
           </div>
 
           <div class="card-body d-flex flex-column">
-            <h5 class="card-title mb-2">${prop.titulo}</h5>
-            <p class="card-text text-muted mb-3">${prop.descripcion}</p>
+            <h5 class="card-title mb-2">${prop.titulo || "Casa"}</h5>
+            <p class="card-text text-muted mb-3">${prop.descripcion || ""}</p>
 
             <div class="d-flex gap-2 mb-3 flex-wrap">
-              <span class="chip-dato" title="Baños"><i class="bi bi-droplet-half me-1"></i>${prop.banos} baños</span>
-              <span class="chip-dato" title="Dormitorios"><i class="bi bi-house-door me-1"></i>${prop.dormitorios} dorm</span>
-              <span class="chip-dato" title="Metros cuadrados"><i class="bi bi-aspect-ratio me-1"></i>${prop.metros} m²</span>
+              <span class="chip-dato" title="Baños"><i class="bi bi-droplet-half me-1"></i>${Number(prop.banos||0)} baños</span>
+              <span class="chip-dato" title="Dormitorios"><i class="bi bi-house-door me-1"></i>${Number(prop.dormitorios||0)} dorm</span>
+              <span class="chip-dato" title="Metros cuadrados"><i class="bi bi-aspect-ratio me-1"></i>${Number(prop.metros||0)} m²</span>
             </div>
 
             <div class="mt-auto">
-              <button class="btn btn-dark w-100 btn-solicitar" data-id="${prop.id}">
+              <button class="btn btn-dark w-100 btn-solicitar" data-id="${prop.id ?? ''}">
                 Solicitar
               </button>
             </div>
@@ -153,33 +134,35 @@
       return col;
     }
 
-    const grid = document.getElementById("grid-propiedades");
     function renderLista(propiedades) {
       grid.innerHTML = "";
+      if (!propiedades || propiedades.length === 0) {
+        grid.innerHTML = `<div class="col-12"><div class="alert alert-light border">No hay propiedades para mostrar.</div></div>`;
+        return;
+      }
       propiedades.forEach(p => grid.appendChild(crearTarjeta(p)));
       document.querySelectorAll(".btn-solicitar").forEach(btn => {
         btn.addEventListener("click", onSolicitar);
       });
     }
-    renderLista(PROPIEDADES);
 
-    const $busqueda = document.getElementById("filtro-busqueda");
-    const $dorm = document.getElementById("filtro-dorm");
-    const $banos = document.getElementById("filtro-banos");
-
+    // =========================
+    // FILTROS
+    // =========================
     function aplicarFiltros() {
       const term = ($busqueda.value || "").toLowerCase();
       const minDorm = parseInt($dorm.value || "0", 10);
       const minBanos = parseInt($banos.value || "0", 10);
 
       const filtradas = PROPIEDADES.filter(p => {
-        const coincideTexto =
-          p.titulo.toLowerCase().includes(term) ||
-          p.descripcion.toLowerCase().includes(term);
-        const okDorm = minDorm ? p.dormitorios >= minDorm : true;
-        const okBanos = minBanos ? p.banos >= minBanos : true;
+        const titulo = (p.titulo || "").toLowerCase();
+        const desc = (p.descripcion || "").toLowerCase();
+        const coincideTexto = titulo.includes(term) || desc.includes(term);
+        const okDorm = minDorm ? Number(p.dormitorios||0) >= minDorm : true;
+        const okBanos = minBanos ? Number(p.banos||0) >= minBanos : true;
         return coincideTexto && okDorm && okBanos;
       });
+
       renderLista(filtradas);
     }
 
@@ -187,16 +170,49 @@
     $dorm.addEventListener("change", aplicarFiltros);
     $banos.addEventListener("change", aplicarFiltros);
 
-    // Handler "Solicitar" (placeholder)
+    // =========================
+    // DATA: FETCH
+    // =========================
+    async function cargarPropiedades() {
+      try {
+        estado.textContent = "Cargando propiedades...";
+        const res = await fetch(`${API_URL}?solo_activas=1&ts=${Date.now()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        // Normalizamos a la estructura que usa el front
+        PROPIEDADES = (data || []).map(c => ({
+          id: c.id,
+          titulo: c.titulo,
+          descripcion: c.descripcion,
+          banos: c.banos,
+          dormitorios: c.dormitorios,
+          metros: c.metros,
+          img1: c.img1, img2: c.img2, img3: c.img3, img4: c.img4, img5: c.img5
+        }));
+
+        estado.textContent = "";
+        aplicarFiltros(); // render con filtros actuales
+      } catch (err) {
+        console.error(err);
+        estado.innerHTML = `<span class="text-danger">No se pudieron cargar las propiedades. Verificá el backend y la conexión.</span>`;
+        grid.innerHTML = "";
+      }
+    }
+
+    // =========================
+    // ACCIÓN SOLICITAR (placeholder)
+    // =========================
     function onSolicitar(e) {
       const id = e.currentTarget.getAttribute("data-id");
-      // Aquí puedes hacer un fetch a tu API para solicitar la unidad:
-      // fetch("http://localhost:8000/api/solicitudes.php", { method: "POST", body: JSON.stringify({ propiedad_id: id }) ... })
       alert("Solicitud enviada para la propiedad ID: " + id);
+      // TODO: POST a tu endpoint de solicitudes si corresponde
     }
+
+    // Init
+    cargarPropiedades();
   </script>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
 </body>
 </html>
