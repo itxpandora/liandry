@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"Testing::testRegistroUsuarioValido":0.044,"Testing::testRegistroCorreoDuplicado":0.044,"Testing::testLoginExitoso":0.088,"Testing::testLoginContrasenaIncorrecta":0.087,"Testing::testRegistrarCasaValida":0,"Testing::testRegistrarCasaDuplicada":0,"Testing::testRegistrarCasaFormatoInvalido":0}}

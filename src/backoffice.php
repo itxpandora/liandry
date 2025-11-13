@@ -129,6 +129,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+        if (isset($input['action']) && $input['action'] === 'delete_user') {
+        $id = isset($input['id']) ? (int)$input['id'] : 0;
+        if ($id <= 0) {
+            json_response(['status'=>'error','message'=>'ID inválido'], 400);
+        }
+
+        try {
+            $conn->beginTransaction();
+
+            // Buscar CI para limpiar ComprobantePago
+            $stmt = $conn->prepare("SELECT ci FROM usuarios WHERE id = :id LIMIT 1");
+            $stmt->execute([':id' => $id]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$row) {
+                throw new Exception("Usuario no encontrado");
+            }
+            $ci = $row['ci'];
+
+            // Eliminar comprobantes asociados
+            $stmt = $conn->prepare("DELETE FROM ComprobantePago WHERE CI = :ci");
+            $stmt->execute([':ci' => $ci]);
+
+            // Eliminar usuario
+            $stmt = $conn->prepare("DELETE FROM usuarios WHERE id = :id");
+            $stmt->execute([':id' => $id]);
+
+            $conn->commit();
+            json_response(['status'=>'ok','message'=>'Usuario eliminado correctamente']);
+        } catch (Exception $e) {
+            if ($conn->inTransaction()) { $conn->rollBack(); }
+            json_response(['status'=>'error','message'=>$e->getMessage()], 500);
+        }
+    }
+
     // Si llegó POST pero sin acción válida
     json_response(['status'=>'error','message'=>'Acción no soportada'], 400);
 }

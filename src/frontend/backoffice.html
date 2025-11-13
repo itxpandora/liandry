@@ -60,7 +60,7 @@
           <h2 class="titulo-principal mb-0">Casas</h2>
           <div>
             <button class="btn btn-outline-secondary me-2" id="btn-refrescar-casas">Refrescar</button>
-            <button class="btn btn-primary" id="btn-nueva-casa">Añadir Casa</button>
+            <button class="btn btn-outline-primary" id="btn-nueva-casa">Añadir Casa</button>
           </div>
         </div>
         <div class="mb-2">
@@ -75,7 +75,7 @@
                 <th>Título</th>
                 <th>Baños</th>
                 <th>Dormitorios</th>
-                <th>Metros</th>
+                <th>Tamaño (m²)</th>
                 <th>Activo</th>
                 <th style="width:180px;">Acciones</th>
               </tr>
@@ -238,33 +238,48 @@
           const btnVer = (Number(user.tiene_comprobante) === 1)
             ? `<button class="btn btn-sm btn-outline-primary btn-ver" data-id="${user.id}">Ver PDF</button>`
             : `<span class="text-muted">Sin archivo</span>`;
-          tr.innerHTML = `
-            <td>${user.ci ?? ""}</td>
-            <td>${user.nombres ?? ""}</td>
-            <td>${user.apellidos ?? ""}</td>
-            <td>${user.correo ?? ""}</td>
-            <td>${badge}</td>
-            <td class="text-center">${btnVer}</td>
-            <td>
-              <div class="d-flex flex-wrap gap-2">
-                <button class="btn btn-sm btn-outline-secondary btn-editar-usuario"
-                  data-id="${user.id}"
-                  data-ci="${user.ci ?? ''}"
-                  data-nombres="${user.nombres ?? ''}"
-                  data-apellidos="${user.apellidos ?? ''}"
-                  data-correo="${user.correo ?? ''}"
-                  data-estado="${Number(user.estado) === 1 ? '1' : '0'}">Editar</button>
+            tr.innerHTML = `
+              <td>${user.ci ?? ""}</td>
+              <td>${user.nombres ?? ""}</td>
+              <td>${user.apellidos ?? ""}</td>
+              <td>${user.correo ?? ""}</td>
+              <td>${badge}</td>
+              <td class="text-center">${btnVer}</td>
+              <td>
+                <div class="d-flex flex-wrap gap-2">
+                  <button class="btn btn-sm btn-outline-secondary btn-editar-usuario"
+                    data-id="${user.id}"
+                    data-ci="${user.ci ?? ''}"
+                    data-nombres="${user.nombres ?? ''}"
+                    data-apellidos="${user.apellidos ?? ''}"
+                    data-correo="${user.correo ?? ''}"
+                    data-estado="${Number(user.estado) === 1 ? '1' : '0'}">Editar</button>
 
-                <button class="btn btn-sm btn-success btn-aprobar" data-id="${user.id}" data-estado="1">Aprobar</button>
-                <button class="btn btn-sm btn-danger btn-rechazar" data-id="${user.id}" data-estado="0">Rechazar</button>
-              </div>
-            </td>`;
+                  <button class="btn btn-sm btn-success btn-aprobar" data-id="${user.id}" data-estado="1">Aprobar</button>
+                  <button class="btn btn-sm btn-warning btn-rechazar" data-id="${user.id}" data-estado="0">Rechazar</button>
+                  <button class="btn btn-sm btn-danger btn-eliminar" data-id="${user.id}">Eliminar</button>
+                </div>
+              </td>`;
           tbody.appendChild(tr);
         });
 
         // Listeners acciones
         tbody.querySelectorAll(".btn-ver").forEach(b => b.addEventListener("click", e => verPDF(e.target.dataset.id)));
         tbody.querySelectorAll(".btn-aprobar,.btn-rechazar").forEach(b => b.addEventListener("click", e => actualizarEstado(e.target.dataset.id, e.target.dataset.estado)));
+
+        // Botón ELIMINAR
+        tbody.querySelectorAll(".btn-eliminar").forEach(b => b.addEventListener("click", async e => {
+          const id = e.target.dataset.id;
+          if (!confirm("¿Eliminar este usuario?")) return;
+          const res = await fetch(API_BACKOFFICE, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "delete_user", id })
+          });
+          const data = await res.json();
+          alert(data?.message || "Usuario eliminado");
+          cargarUsuarios();
+        }));
 
         // Abrir modal de edición
         tbody.querySelectorAll(".btn-editar-usuario").forEach(b => {
@@ -345,8 +360,8 @@
           <td>${Number(c.activo)===1?'<span class="badge bg-success">Sí</span>':'<span class="badge bg-secondary">No</span>'}</td>
           <td>
             <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-outline-primary btn-editar" data-id="${c.id}">Editar</button>
-              <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${c.id}">Eliminar</button>
+              <button class="btn btn-sm btn-outline-secondary btn-editar" data-id="${c.id}">Editar</button>
+              <button class="btn btn-sm btn-danger btn-eliminar" data-id="${c.id}">Eliminar</button>
             </div>
           </td>`;
         tbody.appendChild(tr);
